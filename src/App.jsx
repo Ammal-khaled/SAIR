@@ -8,7 +8,6 @@ import Profile from "./pages/Profile";
 import LiveMap from "./pages/LiveMap";
 import ApprovedReports from "./pages/ApprovedReports";
 
-import AppLayout from "./layouts/AppLayout";
 import ProtectedRoute from "./routes/ProtectedRoute";
 
 export default function App() {
@@ -26,9 +25,7 @@ export default function App() {
           path="/dashboard"
           element={
             <ProtectedRoute>
-              <AppLayout>
-                <Dashboard />
-              </AppLayout>
+              <Dashboard />
             </ProtectedRoute>
           }
         />
@@ -37,9 +34,7 @@ export default function App() {
           path="/profile"
           element={
             <ProtectedRoute>
-              <AppLayout>
-                <Profile />
-              </AppLayout>
+              <Profile />
             </ProtectedRoute>
           }
         />
@@ -48,9 +43,7 @@ export default function App() {
           path="/map"
           element={
             <ProtectedRoute>
-              <AppLayout>
-                <LiveMap />
-              </AppLayout>
+              <LiveMap />
             </ProtectedRoute>
           }
         />
@@ -59,9 +52,7 @@ export default function App() {
           path="/reports"
           element={
             <ProtectedRoute>
-              <AppLayout>
-                <ApprovedReports />
-              </AppLayout>
+              <ApprovedReports />
             </ProtectedRoute>
           }
         />

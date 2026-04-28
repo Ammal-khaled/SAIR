@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import api from "../api/client";
-import { 
-  Clock, AlertCircle, CheckCircle, FileText, 
-  User, Phone, Car, Info, Check, X 
+import {
+  Clock, AlertCircle, CheckCircle, FileText,
+  Check, X
 } from 'lucide-react';
 
 // External component imports
@@ -39,60 +39,60 @@ export default function Dashboard() {
   const containerRef = useRef(null);
   const total = incidents.length;
 
-const pending = incidents.filter(
-  i => i.status === "submitted"
-).length;
+  const pending = incidents.filter(
+    i => i.status === "submitted"
+  ).length;
 
-const underReview = incidents.filter(
-  i => i.status === "under_review"
-).length;
+  const underReview = incidents.filter(
+    i => i.status === "under_review"
+  ).length;
 
-const approved = incidents.filter(
-  i => i.status === "resolved"
-).length;
+  const approved = incidents.filter(
+    i => i.status === "resolved"
+  ).length;
   // ---------------- API LOAD ----------------
   useEffect(() => {
-  const fetchIncidents = async () => {
-    try {
-      const res = await api.get("/reports/my");
+    const fetchIncidents = async () => {
+      try {
+        const res = await api.get("/reports");
 
-      setIncidents(res.data);
-      setSelectedIncident(res.data[0] || null);
+        setIncidents(res.data);
+        setSelectedIncident(res.data[0] || null);
 
-    } catch (err) {
-      console.error(err);
-      setIncidents([]);
-    }
-  };
+      } catch (err) {
+        console.error(err);
+        setIncidents([]);
+      }
+    };
 
-  fetchIncidents();
-}, []);
+    fetchIncidents();
+  }, []);
 
   // ---------------- STATUS UPDATE ----------------
   const handleUpdateStatus = async (id, newStatus) => {
-  try {
-    await api.patch(`/reports/${id}/status`, {
-      status: newStatus
-    });
+    try {
+      await api.patch(`/reports/${id}/status`, {
+        status: newStatus
+      });
 
-    setIncidents(prev =>
-      prev.map(inc =>
-        inc.id === id
-          ? { ...inc, status: newStatus }
-          : inc
-      )
-    );
+      setIncidents(prev =>
+        prev.map(inc =>
+          inc.id === id
+            ? { ...inc, status: newStatus }
+            : inc
+        )
+      );
 
-    if (selectedIncident?.id === id) {
-      setSelectedIncident(prev => 
-     prev ? { ...prev, status: newStatus } : prev
-     );
+      if (selectedIncident?.id === id) {
+        setSelectedIncident(prev =>
+          prev ? { ...prev, status: newStatus } : prev
+        );
+      }
+
+    } catch (err) {
+      console.error(err);
     }
-
-  } catch (err) {
-    console.error(err);
-  }
-};
+  };
 
   // ---------------- RESIZE ----------------
   const startResizing = (e) => {
@@ -141,11 +141,11 @@ const approved = incidents.filter(
 
     const query = searchQuery.toLowerCase();
 
-       const matchesSearch =
-  !query ||
-  inc.id?.toLowerCase().includes(query) ||
-  inc.accidentType?.toLowerCase().includes(query) ||
-  (inc.platesNumber ?? []).join(" ").toLowerCase().includes(query)
+    const matchesSearch =
+      !query ||
+      inc.id?.toLowerCase().includes(query) ||
+      inc.accidentType?.toLowerCase().includes(query) ||
+      (inc.platesNumber ?? []).join(" ").toLowerCase().includes(query)
     return matchesFilter && matchesSearch;
   });
 
@@ -163,39 +163,39 @@ const approved = incidents.filter(
           {/* Stats */}
           <div className="grid grid-cols-4 gap-6 shrink-0">
 
-  <StatCard 
-    title="Pending" 
-    value={pending} 
-    sub="+2" 
-    icon={Clock} 
-    delay="0s" 
-  />
+            <StatCard
+              title="Pending"
+              value={pending}
+              sub="+2"
+              icon={Clock}
+              delay="0s"
+            />
 
-  <StatCard 
-    title="Under Review" 
-    value={underReview} 
-    sub="Active" 
-    icon={AlertCircle} 
-    delay="0.1s" 
-  />
+            <StatCard
+              title="Under Review"
+              value={underReview}
+              sub="Active"
+              icon={AlertCircle}
+              delay="0.1s"
+            />
 
-  <StatCard 
-    title="Approved" 
-    value={approved} 
-    sub="Today" 
-    icon={CheckCircle} 
-    delay="0.2s" 
-  />
+            <StatCard
+              title="Approved"
+              value={approved}
+              sub="Today"
+              icon={CheckCircle}
+              delay="0.2s"
+            />
 
-  <StatCard 
-    title="Total Cases" 
-    value={total} 
-    sub="System wide" 
-    icon={FileText} 
-    delay="0.3s" 
-  />
+            <StatCard
+              title="Total Cases"
+              value={total}
+              sub="System wide"
+              icon={FileText}
+              delay="0.3s"
+            />
 
-</div>  
+          </div>
 
 
 
@@ -210,11 +210,10 @@ const approved = incidents.filter(
                   <button
                     key={f}
                     onClick={() => setActiveFilter(f)}
-                    className={`px-4 py-1.5 text-xs font-medium rounded-full border transition-all ${
-                      activeFilter === f
-                        ? 'bg-[#1a4b7c] text-white border-[#1a4b7c]'
-                        : 'bg-white text-gray-600 border-gray-200'
-                    }`}
+                    className={`px-4 py-1.5 text-xs font-medium rounded-full border transition-all ${activeFilter === f
+                      ? 'bg-[#1a4b7c] text-white border-[#1a4b7c]'
+                      : 'bg-white text-gray-600 border-gray-200'
+                      }`}
                   >
                     {f}
                   </button>
@@ -254,22 +253,116 @@ const approved = incidents.filter(
 
                   <div className="flex justify-between mb-8 border-b pb-6">
                     <div>
-                      <h2 className="text-2xl font-bold">
-                        Report {selectedIncident.id}
-                      </h2>
-                      <p className="text-sm text-gray-500">
-                        {selectedIncident?.driver || "Unknown"} • {selectedIncident?.time || ""}
+                      <div className="flex items-center gap-3 mb-2">
+                        <h2 className="text-2xl font-bold">
+                          Report #{selectedIncident.id?.slice(-6) || selectedIncident.id}
+                        </h2>
+                        <span className={`text-xs px-2.5 py-1 rounded-md font-bold uppercase tracking-wider ${
+                          selectedIncident.status === 'submitted' ? 'bg-blue-100 text-blue-700' :
+                          selectedIncident.status === 'under_review' ? 'bg-yellow-100 text-yellow-700' :
+                          selectedIncident.status === 'resolved' ? 'bg-green-100 text-green-700' :
+                          'bg-red-100 text-red-700'
+                        }`}>
+                          {selectedIncident.status}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-500 font-medium">
+                        {selectedIncident?.partyName || selectedIncident?.driver || "Citizen Report"} • {selectedIncident?.occurredAt ? new Date(selectedIncident.occurredAt).toLocaleString() : new Date(selectedIncident.createdAt).toLocaleString()}
                       </p>
+                      <p className="text-xs text-gray-400 mt-1">ID: {selectedIncident.id}</p>
                     </div>
 
-                    <div className="flex gap-3">
-                      <button onClick={() => handleUpdateStatus(selectedIncident.id, 'rejected')} className="px-4 py-2 border text-red-600 rounded-lg">
-                        <X className="w-4 h-4 inline mr-1" /> Reject
-                      </button>
+                    <div className="flex gap-3 h-fit">
+                      {selectedIncident.status !== 'rejected' && selectedIncident.status !== 'resolved' && (
+                        <>
+                          <button onClick={() => handleUpdateStatus(selectedIncident.id, 'rejected')} className="px-4 py-2 border border-gray-200 bg-white hover:bg-gray-50 transition-colors text-red-600 font-bold text-sm rounded-xl">
+                            <X className="w-4 h-4 inline mr-1" /> Reject
+                          </button>
 
-                      <button onClick={() => handleUpdateStatus(selectedIncident.id, 'resolved')} className="px-4 py-2 bg-[#1a4b7c] text-white rounded-lg">
-                        <Check className="w-4 h-4 inline mr-1" /> Approve
-                      </button>
+                          <button onClick={() => handleUpdateStatus(selectedIncident.id, 'resolved')} className="px-4 py-2 bg-[#1a4b7c] hover:bg-[#133b63] transition-colors text-white font-bold text-sm rounded-xl shadow-md">
+                            <Check className="w-4 h-4 inline mr-1" /> Approve
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-8">
+                    {/* LEFT COL: Details */}
+                    <div className="space-y-6">
+                      
+                      <div>
+                        <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-3">Incident Details</h3>
+                        <div className="bg-gray-50 rounded-xl p-5 border border-gray-100 space-y-4">
+                          <div className="flex justify-between border-b border-gray-200 pb-3">
+                            <span className="text-gray-500 font-medium">Type</span>
+                            <span className="font-bold text-gray-900">{selectedIncident.accidentType || selectedIncident.type}</span>
+                          </div>
+                          <div className="flex justify-between border-b border-gray-200 pb-3">
+                            <span className="text-gray-500 font-medium">Plates Number</span>
+                            <span className="font-bold text-[#1a4b7c] bg-blue-50 px-2 py-0.5 rounded">{(selectedIncident.platesNumber || []).join(', ') || 'N/A'}</span>
+                          </div>
+                          <div className="flex justify-between border-b border-gray-200 pb-3">
+                            <span className="text-gray-500 font-medium">Location Source</span>
+                            <span className="font-bold text-gray-900 uppercase">{selectedIncident.locationSource || 'N/A'}</span>
+                          </div>
+                          <div className="pt-1">
+                            <span className="text-gray-500 font-medium block mb-2">Description</span>
+                            <p className="text-gray-800 bg-white p-3 rounded border border-gray-200 text-sm leading-relaxed">
+                              {selectedIncident.description || "No description provided."}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-3">Location</h3>
+                        {selectedIncident.lat && selectedIncident.lng ? (
+                          <div className="bg-gray-50 rounded-xl p-5 border border-gray-100">
+                            <p className="text-gray-800 font-mono text-sm mb-4 bg-white p-2 border border-gray-200 rounded text-center">
+                              {selectedIncident.lat}, {selectedIncident.lng}
+                            </p>
+                            <a 
+                              href={`https://www.google.com/maps?q=${selectedIncident.lat},${selectedIncident.lng}`} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="block w-full text-center py-2.5 bg-[#1a4b7c] text-white font-bold text-sm rounded-xl hover:bg-[#133b63] shadow-md transition-colors"
+                            >
+                              Open in Google Maps
+                            </a>
+                          </div>
+                        ) : (
+                          <p className="text-gray-400 italic text-sm">Location coordinates not available.</p>
+                        )}
+                      </div>
+
+                    </div>
+
+                    {/* RIGHT COL: Media */}
+                    <div>
+                      <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-3">Attached Evidence</h3>
+                      {selectedIncident.mediaUrls && selectedIncident.mediaUrls.length > 0 ? (
+                        <div className="space-y-4">
+                          {selectedIncident.mediaUrls.map((url, idx) => (
+                            <div key={idx} className="rounded-xl overflow-hidden border border-gray-200 bg-gray-50 shadow-sm relative group cursor-pointer">
+                              <img 
+                                src={`http://sair-cpa-api.duckdns.org${url}`} 
+                                alt={`Evidence ${idx + 1}`} 
+                                className="w-full h-auto object-contain max-h-64"
+                                onClick={() => window.open(`http://sair-cpa-api.duckdns.org${url}`, '_blank')}
+                              />
+                              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+                                <span className="text-white font-bold text-sm">Click to view full size</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="bg-gray-50 rounded-xl p-8 border border-gray-100 flex flex-col items-center justify-center text-center">
+                          <FileText className="w-12 h-12 text-gray-300 mb-3" />
+                          <p className="text-gray-500 font-medium">No media attached to this report.</p>
+                        </div>
+                      )}
                     </div>
                   </div>
 

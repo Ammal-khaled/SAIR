@@ -1,13 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
-  Maximize2,
-  Layers,
-  Navigation,
   X,
   Clock,
   Car,
   User
 } from 'lucide-react';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import L from 'leaflet';
 
 import api from "../api/client";
 import Sidebar from "../components/Sidebar";
@@ -31,8 +30,25 @@ const globalStyles = `
   }
 `;
 
+// Marker Icons
+const createIcon = (urgent, clusterCount) => {
+  const color = urgent ? '#ef4444' : '#3b82f6';
+  const html = `
+    <div style="position: relative;">
+      <div style="width: 20px; height: 20px; background-color: ${color}; border-radius: 50%; border: 2px solid white; box-shadow: 0 4px 6px rgba(0,0,0,0.3);"></div>
+      ${clusterCount > 1 ? `<div style="position: absolute; top: -8px; right: -8px; background: black; color: white; font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 10px;">${clusterCount}</div>` : ''}
+    </div>
+  `;
+  return new L.DivIcon({
+    html,
+    className: 'custom-marker',
+    iconSize: [20, 20],
+    iconAnchor: [10, 10]
+  });
+};
+
 // ---------------- clustering (LAT/LNG based) ----------------
-const clusterIncidents = (incidents, precision = 1) => {
+const clusterIncidents = (incidents, precision = 2) => {
   const clusters = {};
 
   incidents.forEach((inc) => {
@@ -45,6 +61,7 @@ const clusterIncidents = (incidents, precision = 1) => {
       };
     } else {
       clusters[key].cluster.push(inc);
+      if (inc.urgent) clusters[key].urgent = true; // Mark cluster as urgent if any is urgent
     }
   });
 
@@ -54,7 +71,6 @@ const clusterIncidents = (incidents, precision = 1) => {
 export default function LiveMap() {
   const [incidents, setIncidents] = useState([]);
   const [selectedPin, setSelectedPin] = useState(null);
-  const [mapZoom, setMapZoom] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
   const [currentView, setCurrentView] = useState('map');
 
@@ -64,7 +80,7 @@ export default function LiveMap() {
 
     const fetchReports = async () => {
       try {
-        const res = await api.get("/reports/my");
+        const res = await api.get("/reports");
 
         const mapped = res.data
           .filter(r => r.lat && r.lng) // مهم جداً
@@ -76,6 +92,9 @@ export default function LiveMap() {
             urgent: r.status === "submitted",
             plate: r.platesNumber?.[0] || "",
             statement: r.description,
+            mediaUrl: r.mediaUrls?.[0] ? `http://sair-cpa-api.duckdns.org${r.mediaUrls[0]}` : null,
+            locationSource: r.locationSource,
+            occurredAt: new Date(r.occurredAt).toLocaleString(),
 
             // 🔥 REAL LOCATION
             lat: r.lat,
@@ -103,19 +122,8 @@ export default function LiveMap() {
 
   const clusters = clusterIncidents(filteredIncidents);
 
-  // ---------------- MAP POSITION NORMALIZATION ----------------
-  // نحول lat/lng لنسبة على الشاشة
-  const normalize = (value, min, max) => {
-    return ((value - min) / (max - min)) * 100;
-  };
-
-  const latValues = clusters.map(i => i.lat);
-  const lngValues = clusters.map(i => i.lng);
-
-  const minLat = Math.min(...latValues);
-  const maxLat = Math.max(...latValues);
-  const minLng = Math.min(...lngValues);
-  const maxLng = Math.max(...lngValues);
+  // Map Center (default to Jordan area if no points, else center on first point)
+  const mapCenter = clusters.length > 0 ? [clusters[0].lat, clusters[0].lng] : [31.95, 35.91];
 
   return (
     <div className="flex h-screen bg-[#f1f5f9]">
@@ -137,67 +145,92 @@ export default function LiveMap() {
             </p>
           </div>
 
-          {/* MAP AREA (REAL COORDINATES) */}
-          <div className="relative w-full h-full">
+          {/* MAP AREA */}
+          <div className="relative w-full h-full z-0">
+            <MapContainer center={mapCenter} zoom={11} style={{ height: '100%', width: '100%' }}>
+              <TileLayer
+                url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+              />
 
-            {clusters.map((c) => {
-              const x = normalize(c.lng, minLng, maxLng);
-              const y = normalize(c.lat, minLat, maxLat);
-
-              return (
-                <div
+              {clusters.map((c) => (
+                <Marker
                   key={c.id}
-                  onClick={() => setSelectedPin(c)}
-                  className="absolute cursor-pointer"
-                  style={{
-                    left: `${x}%`,
-                    top: `${100 - y}%` // invert map Y axis
+                  position={[c.lat, c.lng]}
+                  icon={createIcon(c.urgent, c.cluster.length)}
+                  eventHandlers={{
+                    click: () => setSelectedPin(c),
                   }}
-                >
-                  <div className="relative">
-                    <div className={`w-5 h-5 rounded-full ${
-                      c.urgent ? "bg-red-500" : "bg-blue-500"
-                    } border-2 border-white shadow-lg`} />
-
-                    {c.cluster.length > 1 && (
-                      <div className="absolute -top-2 -right-2 bg-black text-white text-[10px] px-1 rounded-full">
-                        {c.cluster.length}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-
+                />
+              ))}
+            </MapContainer>
           </div>
 
-          {/* POPUP */}
+          {/* POPUP OVERLAY (Custom UI) */}
           {selectedPin && (
             <div className="absolute right-6 top-24 bg-white shadow-2xl rounded-2xl p-5 w-80 z-30">
 
-              <div className="flex justify-between">
-                <h3 className="font-bold">{selectedPin.id}</h3>
-                <button onClick={() => setSelectedPin(null)}>
-                  <X size={16} />
+              <div className="flex justify-between items-start">
+                <div>
+                  <h3 className="font-bold text-gray-900">Incident #{selectedPin.id.slice(-6)}</h3>
+                  <p className="text-xs text-gray-500">{selectedPin.id}</p>
+                </div>
+                <button onClick={() => setSelectedPin(null)} className="p-1 hover:bg-gray-100 rounded-md">
+                  <X size={16} className="text-gray-500" />
                 </button>
               </div>
 
-              <p className="text-sm text-gray-500 mt-2">
-                {selectedPin.type}
-              </p>
+              {selectedPin.mediaUrl && (
+                <div className="mt-3 w-full h-32 rounded-lg overflow-hidden border border-gray-200">
+                  <img src={selectedPin.mediaUrl} alt="Incident" className="w-full h-full object-cover" />
+                </div>
+              )}
 
               <div className="mt-3 space-y-2 text-sm">
-                <p><Clock size={14} className="inline mr-1" /> {selectedPin.time}</p>
-                <p><Car size={14} className="inline mr-1" /> {selectedPin.plate}</p>
-                <p><User size={14} className="inline mr-1" /> {selectedPin.statement}</p>
+                <div className="flex justify-between border-b border-gray-50 pb-2">
+                  <span className="text-gray-500">Type</span>
+                  <span className="font-bold text-gray-800">{selectedPin.type}</span>
+                </div>
+                <div className="flex justify-between border-b border-gray-50 pb-2">
+                  <span className="text-gray-500"><Clock size={14} className="inline mr-1" /> Time</span>
+                  <span className="font-medium text-gray-800">{selectedPin.occurredAt || selectedPin.time}</span>
+                </div>
+                {selectedPin.plate && (
+                  <div className="flex justify-between border-b border-gray-50 pb-2">
+                    <span className="text-gray-500"><Car size={14} className="inline mr-1" /> Plate</span>
+                    <span className="font-bold text-[#1a4b7c]">{selectedPin.plate}</span>
+                  </div>
+                )}
+                <div className="pt-1">
+                  <span className="text-gray-500 block mb-1"><User size={14} className="inline mr-1" /> Statement</span>
+                  <p className="bg-gray-50 p-2 rounded-lg text-gray-700 italic border border-gray-100">{selectedPin.statement || "No statement provided."}</p>
+                </div>
+              </div>
+
+              <div className="mt-4 flex gap-2">
+                <span className={`text-xs px-2.5 py-1 rounded-md font-bold uppercase tracking-wider ${selectedPin.urgent ? "bg-red-100 text-red-700" : "bg-blue-100 text-blue-700"
+                  }`}>
+                  {selectedPin.urgent ? "Urgent" : "Normal"}
+                </span>
+                <span className="text-xs px-2.5 py-1 rounded-md font-bold uppercase tracking-wider bg-gray-100 text-gray-600">
+                  {selectedPin.locationSource}
+                </span>
+                {selectedPin.cluster.length > 1 && (
+                  <span className="text-xs px-2.5 py-1 rounded-md font-bold uppercase tracking-wider bg-slate-800 text-white">
+                    {selectedPin.cluster.length} Nearby
+                  </span>
+                )}
               </div>
 
               <div className="mt-4">
-                <span className={`text-xs px-2 py-1 rounded-full ${
-                  selectedPin.urgent ? "bg-red-100 text-red-600" : "bg-gray-100"
-                }`}>
-                  {selectedPin.urgent ? "Urgent" : "Normal"}
-                </span>
+                <a
+                  href={`https://www.google.com/maps?q=${selectedPin.lat},${selectedPin.lng}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block w-full text-center py-2 bg-blue-50 text-blue-700 font-bold text-sm rounded-lg hover:bg-blue-100 transition-colors"
+                >
+                  View on Google Maps
+                </a>
               </div>
 
             </div>

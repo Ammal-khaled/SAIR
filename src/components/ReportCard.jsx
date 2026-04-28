@@ -1,4 +1,3 @@
-import React from 'react';
 import { Clock, Car, AlertCircle } from 'lucide-react';
 import Badge from './ui/Badge';
 

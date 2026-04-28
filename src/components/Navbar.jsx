@@ -1,4 +1,3 @@
-import React from 'react';
 import { Search, Globe, Bell, Shield } from 'lucide-react';
 
 export default function Navbar({ searchQuery, setSearchQuery }) {

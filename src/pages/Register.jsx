@@ -1,9 +1,9 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { registerUser } from "../api/auth";
 import { useNavigate } from "react-router-dom";
 import {
   User, Lock, ArrowRight, Shield,
-  Globe, BadgeAlert, Building
+  Globe, Building
 } from "lucide-react";
 
 export default function Register({ onNavigateToLogin }) {

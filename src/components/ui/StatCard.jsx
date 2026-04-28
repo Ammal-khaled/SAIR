@@ -1,4 +1,3 @@
-import React from 'react';
 
 export const StatCard = ({ title, value, sub, icon: Icon, delay = "0s", className = "" }) => {
   return (
