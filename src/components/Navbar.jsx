@@ -1,10 +1,18 @@
-import { Search, Globe, Bell, Shield } from 'lucide-react';
+import { Search, Globe, Bell, Shield, Menu } from 'lucide-react';
 
-export default function Navbar({ searchQuery, setSearchQuery }) {
+export default function Navbar({ searchQuery, setSearchQuery, onMenuClick }) {
   const lang = "en";
 
   return (
-    <header className="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-6 shrink-0 z-30 relative shadow-sm">
+    <header className="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-4 lg:px-6 shrink-0 z-30 relative shadow-sm">
+
+      {/* Menu Toggle (Mobile) */}
+      <button 
+        onClick={onMenuClick}
+        className="lg:hidden p-2 mr-2 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors"
+      >
+        <Menu className="w-6 h-6" />
+      </button>
 
       {/* Search */}
       <div className="flex-1 max-w-xl">

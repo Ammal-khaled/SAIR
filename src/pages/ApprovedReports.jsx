@@ -25,6 +25,7 @@ export default function ApprovedReports() {
   const [logs, setLogs] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentView, setCurrentView] = useState("reports");
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // ---------------- API LOAD ----------------
   useEffect(() => {
@@ -75,34 +76,43 @@ export default function ApprovedReports() {
 
   return (
     <div className="flex h-screen bg-[#f1f5f9] font-sans overflow-hidden text-slate-800" dir="ltr">
-      <Sidebar currentView={currentView} setCurrentView={setCurrentView} />
+      <Sidebar 
+        currentView={currentView} 
+        setCurrentView={setCurrentView} 
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+      />
 
       <div className="flex-1 flex flex-col min-w-0">
-        <Navbar searchQuery={searchTerm} setSearchQuery={setSearchTerm} />
+        <Navbar 
+          searchQuery={searchTerm} 
+          setSearchQuery={setSearchTerm} 
+          onMenuClick={() => setIsSidebarOpen(true)}
+        />
 
-        <div className="h-full bg-gray-50/50 p-8 font-sans animate-fade-in overflow-y-auto" dir="ltr">
+        <div className="h-full bg-gray-50/50 p-4 lg:p-8 font-sans animate-fade-in overflow-y-auto" dir="ltr">
 
-          <div className="flex justify-between items-end mb-8 animate-slide-up" style={{ animationDelay: '0.1s' }}>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-8 animate-slide-up gap-4" style={{ animationDelay: '0.1s' }}>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900 mb-1 tracking-tight">System Logs & Reports</h1>
-              <p className="text-sm text-gray-500 font-medium">Manage and review all processed incident reports.</p>
+              <h1 className="text-xl lg:text-2xl font-bold text-gray-900 mb-1 tracking-tight">System Logs & Reports</h1>
+              <p className="text-xs lg:text-sm text-gray-500 font-medium">Manage and review all processed incident reports.</p>
             </div>
 
-            <div className="flex gap-3">
-              <button className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-xl text-sm font-bold shadow-sm hover:bg-gray-50 transition-all active:scale-95">
+            <div className="flex gap-3 w-full sm:w-auto">
+              <button className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-xl text-sm font-bold shadow-sm hover:bg-gray-50 transition-all active:scale-95">
                 <Filter className="w-4 h-4 text-gray-400" /> Filter
               </button>
 
-              <button className="flex items-center gap-2 px-4 py-2 bg-[#1a4b7c] text-white rounded-xl text-sm font-bold shadow-md hover:bg-[#133b63] transition-all active:scale-95">
-                <Download className="w-4 h-4" /> Export CSV
+              <button className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-[#1a4b7c] text-white rounded-xl text-sm font-bold shadow-md hover:bg-[#133b63] transition-all active:scale-95">
+                <Download className="w-4 h-4" /> Export
               </button>
             </div>
           </div>
 
           <div className="bg-white border border-gray-200 rounded-[24px] shadow-sm overflow-hidden animate-slide-up" style={{ animationDelay: '0.2s' }}>
 
-            <div className="p-5 border-b border-gray-100 flex justify-between items-center bg-white">
-              <div className="relative w-80 group">
+            <div className="p-4 lg:p-5 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white gap-4">
+              <div className="relative w-full sm:w-80 group">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-[#1a4b7c] transition-colors" />
                 <input
                   type="text"
@@ -113,7 +123,7 @@ export default function ApprovedReports() {
                 />
               </div>
 
-              <div className="text-xs font-bold text-gray-400 uppercase tracking-widest">
+              <div className="text-[10px] lg:text-xs font-bold text-gray-400 uppercase tracking-widest">
                 {filteredLogs.length} Records Found
               </div>
             </div>

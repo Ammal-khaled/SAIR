@@ -73,6 +73,7 @@ export default function LiveMap() {
   const [selectedPin, setSelectedPin] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [currentView, setCurrentView] = useState('map');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // ---------------- API + REALTIME ----------------
   useEffect(() => {
@@ -126,21 +127,30 @@ export default function LiveMap() {
   const mapCenter = clusters.length > 0 ? [clusters[0].lat, clusters[0].lng] : [31.95, 35.91];
 
   return (
-    <div className="flex h-screen bg-[#f1f5f9]">
+    <div className="flex h-screen bg-[#f1f5f9] overflow-hidden">
       <style>{globalStyles}</style>
 
-      <Sidebar currentView={currentView} setCurrentView={setCurrentView} />
+      <Sidebar 
+        currentView={currentView} 
+        setCurrentView={setCurrentView} 
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+      />
 
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
 
-        <Navbar searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+        <Navbar 
+          searchQuery={searchQuery} 
+          setSearchQuery={setSearchQuery} 
+          onMenuClick={() => setIsSidebarOpen(true)}
+        />
 
         <main className="flex-1 relative overflow-hidden bg-gray-200">
 
           {/* TOP PANEL */}
-          <div className="absolute top-6 left-6 z-20 bg-white p-4 rounded-xl shadow">
-            <h2 className="font-bold">Live Incidents</h2>
-            <p className="text-sm text-gray-500">
+          <div className="absolute top-4 left-4 z-20 bg-white/90 backdrop-blur p-3 lg:p-4 rounded-xl shadow-lg border border-white/20">
+            <h2 className="font-bold text-sm lg:text-base">Live Incidents</h2>
+            <p className="text-[10px] lg:text-sm text-gray-500 font-medium">
               Total: {filteredIncidents.length} • Urgent: {filteredIncidents.filter(i => i.urgent).length}
             </p>
           </div>
@@ -168,7 +178,7 @@ export default function LiveMap() {
 
           {/* POPUP OVERLAY (Custom UI) */}
           {selectedPin && (
-            <div className="absolute right-6 top-24 bg-white shadow-2xl rounded-2xl p-5 w-80 z-30">
+            <div className="absolute right-4 lg:right-6 top-20 lg:top-24 bg-white shadow-2xl rounded-2xl p-4 lg:p-5 w-[calc(100%-2rem)] sm:w-80 z-30 animate-slide-up">
 
               <div className="flex justify-between items-start">
                 <div>
@@ -207,12 +217,19 @@ export default function LiveMap() {
                 </div>
               </div>
 
-              <div className="mt-4 flex gap-2">
-                <span className={`text-xs px-2.5 py-1 rounded-md font-bold uppercase tracking-wider ${selectedPin.urgent ? "bg-red-100 text-red-700" : "bg-blue-100 text-blue-700"
-                  }`}>
-                  {selectedPin.urgent ? "Urgent" : "Normal"}
+              <div className="mt-4 flex flex-wrap gap-2">
+                <span className={`text-[10px] px-2.5 py-1 rounded-md font-bold uppercase tracking-wider ${
+                  selectedPin.status === 'submitted' ? 'bg-blue-100 text-blue-700' :
+                  selectedPin.status === 'under_review' ? 'bg-yellow-100 text-yellow-700' :
+                  selectedPin.status === 'verified' ? 'bg-indigo-100 text-indigo-700' :
+                  selectedPin.status === 'in_progress' ? 'bg-orange-100 text-orange-700' :
+                  selectedPin.status === 'resolved' ? 'bg-green-100 text-green-700' :
+                  selectedPin.status === 'rejected' ? 'bg-red-100 text-red-700' :
+                  'bg-gray-100 text-gray-700'
+                }`}>
+                  {selectedPin.status}
                 </span>
-                <span className="text-xs px-2.5 py-1 rounded-md font-bold uppercase tracking-wider bg-gray-100 text-gray-600">
+                <span className="text-[10px] px-2.5 py-1 rounded-md font-bold uppercase tracking-wider bg-gray-100 text-gray-600">
                   {selectedPin.locationSource}
                 </span>
                 {selectedPin.cluster.length > 1 && (

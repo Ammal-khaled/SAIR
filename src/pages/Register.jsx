@@ -81,17 +81,17 @@ export default function Register({ onNavigateToLogin }) {
 
       <div className="flex-1 flex items-center justify-center p-4">
 
-        <div className="w-full max-w-[480px] bg-white rounded-[32px] p-8 shadow-2xl border border-slate-100 animate-slide-up">
+        <div className="w-full max-w-[480px] bg-white rounded-[32px] p-6 lg:p-8 shadow-2xl border border-slate-100 animate-slide-up">
 
           {/* HEADER */}
-          <div className="flex flex-col items-center mb-8">
+          <div className="flex flex-col items-center mb-6 lg:mb-8 text-center">
             <div className="mb-2">
               <Logo />
             </div>
-            <h1 className="text-2xl font-serif font-bold text-[#002855]">
+            <h1 className="text-xl lg:text-2xl font-serif font-bold text-[#002855]">
               Portal Access Request
             </h1>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+            <p className="text-[9px] lg:text-[10px] font-bold text-slate-400 uppercase tracking-widest">
               SAER Public Safety Portal
             </p>
           </div>

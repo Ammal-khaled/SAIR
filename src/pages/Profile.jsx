@@ -10,6 +10,7 @@ export default function Profile({ onLogout }) {
   const [loading, setLoading] = useState(true);
   const [currentView, setCurrentView] = useState("profile");
   const [searchQuery, setSearchQuery] = useState("");
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -42,16 +43,25 @@ export default function Profile({ onLogout }) {
 
   return (
     <div className="flex h-screen bg-[#f1f5f9] font-sans overflow-hidden text-slate-800" dir="ltr">
-      <Sidebar currentView={currentView} setCurrentView={setCurrentView} />
+      <Sidebar 
+        currentView={currentView} 
+        setCurrentView={setCurrentView} 
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+      />
 
       <div className="flex-1 flex flex-col min-w-0">
-        <Navbar searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+        <Navbar 
+          searchQuery={searchQuery} 
+          setSearchQuery={setSearchQuery} 
+          onMenuClick={() => setIsSidebarOpen(true)}
+        />
 
-        <div className="flex-1 p-8 overflow-y-auto animate-fade-in bg-gray-50/50">
+        <div className="flex-1 p-4 lg:p-8 overflow-y-auto animate-fade-in bg-gray-50/50">
 
           <div className="max-w-4xl mx-auto">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2 tracking-tight">Account Settings</h1>
-            <p className="text-sm text-gray-500 font-medium mb-8">Manage your profile information and system preferences.</p>
+            <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2 tracking-tight">Account Settings</h1>
+            <p className="text-xs lg:text-sm text-gray-500 font-medium mb-8">Manage your profile information and system preferences.</p>
 
             {loading ? (
               <div className="flex items-center justify-center h-64">

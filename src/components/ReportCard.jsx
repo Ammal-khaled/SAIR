@@ -33,15 +33,13 @@ export const ReportCard = ({ incident, isSelected, onClick, className = "", styl
       <div className="flex justify-between items-center">
         <Badge
           variant={
-            incident.status === 'submitted'
-              ? 'gray'
-              : incident.status === 'under_review'
-              ? 'blue'
-              : incident.status === 'resolved'
-              ? 'green'
-              : incident.status === 'rejected'
-              ? 'red'
-              : 'gray'
+            incident.status === 'submitted' ? 'blue' :
+            incident.status === 'under_review' ? 'yellow' :
+            incident.status === 'verified' ? 'indigo' :
+            incident.status === 'in_progress' ? 'orange' :
+            incident.status === 'resolved' ? 'green' :
+            incident.status === 'rejected' ? 'red' :
+            'gray'
           }
         >
           {incident.status || 'Unknown'}

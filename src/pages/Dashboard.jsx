@@ -30,9 +30,10 @@ const dashboardStyles = `
 export default function Dashboard() {
   const [incidents, setIncidents] = useState([]);
   const [selectedIncident, setSelectedIncident] = useState(null);
-  const [activeFilter, setActiveFilter] = useState('All Cases');
+  const [activeFilter, setActiveFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [currentView, setCurrentView] = useState('active');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const [leftWidth, setLeftWidth] = useState(35);
   const [isResizing, setIsResizing] = useState(false);
@@ -133,11 +134,19 @@ export default function Dashboard() {
   }, [isResizing]);
 
   // ---------------- FILTER ----------------
+  const statuses = [
+    { id: 'all', label: 'All Cases' },
+    { id: 'submitted', label: 'Submitted' },
+    { id: 'under_review', label: 'Under Review' },
+    { id: 'verified', label: 'Verified' },
+    { id: 'in_progress', label: 'In Progress' },
+    { id: 'resolved', label: 'Resolved' },
+    { id: 'rejected', label: 'Rejected' },
+  ];
+
   const filteredIncidents = incidents.filter(inc => {
     const matchesFilter =
-      activeFilter === 'All Cases' ||
-      (activeFilter === 'Pending' && inc.status === 'submitted') ||
-      (activeFilter === 'Urgent' && inc.urgent);
+      activeFilter === 'all' || inc.status === activeFilter;
 
     const query = searchQuery.toLowerCase();
 
@@ -149,19 +158,39 @@ export default function Dashboard() {
     return matchesFilter && matchesSearch;
   });
 
+  const detailsRef = useRef(null);
+
+  const handleSelectIncident = (inc) => {
+    setSelectedIncident(inc);
+    if (window.innerWidth < 1024) {
+      setTimeout(() => {
+        detailsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    }
+  };
+
   return (
     <div className="flex h-screen bg-[#f1f5f9] font-sans overflow-hidden text-slate-800" dir="ltr">
       <style>{dashboardStyles}</style>
 
-      <Sidebar currentView={currentView} setCurrentView={setCurrentView} />
+      <Sidebar
+        currentView={currentView}
+        setCurrentView={setCurrentView}
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+      />
 
       <div className="flex-1 flex flex-col min-w-0">
-        <Navbar searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+        <Navbar
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          onMenuClick={() => setIsSidebarOpen(true)}
+        />
 
-        <main className="flex-1 relative overflow-hidden bg-gray-50/50 flex flex-col p-6 gap-6">
+        <main className="flex-1 relative overflow-y-auto lg:overflow-hidden bg-gray-50/50 flex flex-col p-4 lg:p-6 gap-6">
 
           {/* Stats */}
-          <div className="grid grid-cols-4 gap-6 shrink-0">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 shrink-0">
 
             <StatCard
               title="Pending"
@@ -169,14 +198,16 @@ export default function Dashboard() {
               sub="+2"
               icon={Clock}
               delay="0s"
+              className="p-4 lg:p-5"
             />
 
             <StatCard
-              title="Under Review"
+              title="Review"
               value={underReview}
               sub="Active"
               icon={AlertCircle}
               delay="0.1s"
+              className="p-4 lg:p-5"
             />
 
             <StatCard
@@ -185,14 +216,16 @@ export default function Dashboard() {
               sub="Today"
               icon={CheckCircle}
               delay="0.2s"
+              className="p-4 lg:p-5"
             />
 
             <StatCard
-              title="Total Cases"
+              title="Total"
               value={total}
-              sub="System wide"
+              sub="System"
               icon={FileText}
               delay="0.3s"
+              className="p-4 lg:p-5"
             />
 
           </div>
@@ -200,34 +233,37 @@ export default function Dashboard() {
 
 
           {/* Split View */}
-          <div ref={containerRef} className="flex-1 flex overflow-hidden relative">
+          <div ref={containerRef} className="flex-1 flex flex-col lg:flex-row overflow-visible lg:overflow-hidden relative min-h-0">
 
-            {/* LEFT */}
-            <div style={{ width: `${leftWidth}%` }} className="flex flex-col overflow-hidden h-full pr-2">
+            {/* LEFT - List */}
+            <div
+              style={{ width: window.innerWidth < 1024 ? '100%' : `${leftWidth}%` }}
+              className="flex flex-col h-fit lg:h-full lg:pr-2 shrink-0"
+            >
 
               <div className="flex gap-2 mb-4 shrink-0 overflow-x-auto pb-1 custom-scrollbar">
-                {['All Cases', 'Pending', 'Urgent'].map(f => (
+                {statuses.map(s => (
                   <button
-                    key={f}
-                    onClick={() => setActiveFilter(f)}
-                    className={`px-4 py-1.5 text-xs font-medium rounded-full border transition-all ${activeFilter === f
+                    key={s.id}
+                    onClick={() => setActiveFilter(s.id)}
+                    className={`px-4 py-1.5 text-xs font-medium rounded-full border transition-all whitespace-nowrap ${activeFilter === s.id
                       ? 'bg-[#1a4b7c] text-white border-[#1a4b7c]'
                       : 'bg-white text-gray-600 border-gray-200'
                       }`}
                   >
-                    {f}
+                    {s.label}
                   </button>
                 ))}
               </div>
 
-              <div className="flex-1 overflow-y-auto space-y-3 custom-scrollbar pr-1">
+              <div className="space-y-3 pb-4">
                 {filteredIncidents.length > 0 ? (
                   filteredIncidents.map((inc, i) => (
                     <ReportCard
                       key={inc.id}
                       incident={inc}
                       isSelected={selectedIncident?.id === inc.id}
-                      onClick={() => setSelectedIncident(inc)}
+                      onClick={() => handleSelectIncident(inc)}
                       delay={`${0.2 + i * 0.05}s`}
                     />
                   ))
@@ -239,75 +275,99 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* RESIZER */}
+            {/* RESIZER - Desktop only */}
             <div
               onMouseDown={startResizing}
-              className="w-1.5 h-full cursor-col-resize"
+              className="hidden lg:block w-1.5 h-full cursor-col-resize"
             />
 
-            {/* RIGHT */}
-            <div className="flex-1 bg-white rounded-2xl border border-gray-200 flex flex-col overflow-hidden shadow-sm ml-2">
+            {/* RIGHT - Details */}
+            <div ref={detailsRef} className="flex-1 bg-white rounded-2xl border border-gray-200 flex flex-col overflow-hidden shadow-sm lg:ml-2 min-h-[500px] lg:min-h-0 mb-8 lg:mb-0">
 
               {selectedIncident?.id ? (
-                <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
+                <div className="flex-1 overflow-y-auto p-4 lg:p-8 custom-scrollbar">
 
-                  <div className="flex justify-between mb-8 border-b pb-6">
+                  <div className="flex flex-col sm:flex-row justify-between mb-8 border-b pb-6 gap-4">
                     <div>
-                      <div className="flex items-center gap-3 mb-2">
-                        <h2 className="text-2xl font-bold">
+                      <div className="flex flex-wrap items-center gap-3 mb-2">
+                        <h2 className="text-xl lg:text-2xl font-bold">
                           Report #{selectedIncident.id?.slice(-6) || selectedIncident.id}
                         </h2>
-                        <span className={`text-xs px-2.5 py-1 rounded-md font-bold uppercase tracking-wider ${
-                          selectedIncident.status === 'submitted' ? 'bg-blue-100 text-blue-700' :
+                        <span className={`text-[10px] px-2.5 py-1 rounded-md font-bold uppercase tracking-wider ${selectedIncident.status === 'submitted' ? 'bg-blue-100 text-blue-700' :
                           selectedIncident.status === 'under_review' ? 'bg-yellow-100 text-yellow-700' :
-                          selectedIncident.status === 'resolved' ? 'bg-green-100 text-green-700' :
-                          'bg-red-100 text-red-700'
-                        }`}>
+                            selectedIncident.status === 'verified' ? 'bg-indigo-100 text-indigo-700' :
+                              selectedIncident.status === 'in_progress' ? 'bg-orange-100 text-orange-700' :
+                                selectedIncident.status === 'resolved' ? 'bg-green-100 text-green-700' :
+                                  selectedIncident.status === 'rejected' ? 'bg-red-100 text-red-700' :
+                                    'bg-gray-100 text-gray-700'
+                          }`}>
                           {selectedIncident.status}
                         </span>
                       </div>
-                      <p className="text-sm text-gray-500 font-medium">
+                      <p className="text-xs lg:text-sm text-gray-500 font-medium">
                         {selectedIncident?.partyName || selectedIncident?.driver || "Citizen Report"} • {selectedIncident?.occurredAt ? new Date(selectedIncident.occurredAt).toLocaleString() : new Date(selectedIncident.createdAt).toLocaleString()}
                       </p>
-                      <p className="text-xs text-gray-400 mt-1">ID: {selectedIncident.id}</p>
                     </div>
 
-                    <div className="flex gap-3 h-fit">
+                    <div className="flex flex-wrap gap-3 h-fit">
                       {selectedIncident.status !== 'rejected' && selectedIncident.status !== 'resolved' && (
                         <>
-                          <button onClick={() => handleUpdateStatus(selectedIncident.id, 'rejected')} className="px-4 py-2 border border-gray-200 bg-white hover:bg-gray-50 transition-colors text-red-600 font-bold text-sm rounded-xl">
+                          <button
+                            onClick={() => handleUpdateStatus(selectedIncident.id, 'rejected')}
+                            className="flex-1 sm:flex-none px-4 py-2 border border-gray-200 bg-white hover:bg-red-50 hover:text-red-600 transition-all text-gray-600 font-bold text-sm rounded-xl"
+                          >
                             <X className="w-4 h-4 inline mr-1" /> Reject
                           </button>
 
-                          <button onClick={() => handleUpdateStatus(selectedIncident.id, 'resolved')} className="px-4 py-2 bg-[#1a4b7c] hover:bg-[#133b63] transition-colors text-white font-bold text-sm rounded-xl shadow-md">
-                            <Check className="w-4 h-4 inline mr-1" /> Approve
-                          </button>
+                          {selectedIncident.status === 'submitted' && (
+                            <button onClick={() => handleUpdateStatus(selectedIncident.id, 'under_review')} className="flex-1 sm:flex-none px-4 py-2 bg-yellow-500 hover:bg-yellow-600 transition-colors text-white font-bold text-sm rounded-xl shadow-md">
+                              <AlertCircle className="w-4 h-4 inline mr-1" /> Mark Review
+                            </button>
+                          )}
+
+                          {selectedIncident.status === 'under_review' && (
+                            <button onClick={() => handleUpdateStatus(selectedIncident.id, 'verified')} className="flex-1 sm:flex-none px-4 py-2 bg-indigo-600 hover:bg-indigo-700 transition-colors text-white font-bold text-sm rounded-xl shadow-md">
+                              <CheckCircle className="w-4 h-4 inline mr-1" /> Verify Report
+                            </button>
+                          )}
+
+                          {selectedIncident.status === 'verified' && (
+                            <button onClick={() => handleUpdateStatus(selectedIncident.id, 'in_progress')} className="flex-1 sm:flex-none px-4 py-2 bg-orange-500 hover:bg-orange-600 transition-colors text-white font-bold text-sm rounded-xl shadow-md">
+                              <Clock className="w-4 h-4 inline mr-1" /> Start Process
+                            </button>
+                          )}
+
+                          {selectedIncident.status === 'in_progress' && (
+                            <button onClick={() => handleUpdateStatus(selectedIncident.id, 'resolved')} className="flex-1 sm:flex-none px-4 py-2 bg-emerald-600 hover:bg-emerald-700 transition-colors text-white font-bold text-sm rounded-xl shadow-md">
+                              <Check className="w-4 h-4 inline mr-1" /> Finalize Case
+                            </button>
+                          )}
                         </>
                       )}
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-8">
-                    {/* LEFT COL: Details */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {/* Details */}
                     <div className="space-y-6">
-                      
+
                       <div>
                         <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-3">Incident Details</h3>
-                        <div className="bg-gray-50 rounded-xl p-5 border border-gray-100 space-y-4">
+                        <div className="bg-gray-50 rounded-xl p-4 lg:p-5 border border-gray-100 space-y-4">
                           <div className="flex justify-between border-b border-gray-200 pb-3">
-                            <span className="text-gray-500 font-medium">Type</span>
-                            <span className="font-bold text-gray-900">{selectedIncident.accidentType || selectedIncident.type}</span>
+                            <span className="text-gray-500 font-medium text-sm">Type</span>
+                            <span className="font-bold text-gray-900 text-sm">{selectedIncident.accidentType || selectedIncident.type}</span>
                           </div>
                           <div className="flex justify-between border-b border-gray-200 pb-3">
-                            <span className="text-gray-500 font-medium">Plates Number</span>
-                            <span className="font-bold text-[#1a4b7c] bg-blue-50 px-2 py-0.5 rounded">{(selectedIncident.platesNumber || []).join(', ') || 'N/A'}</span>
+                            <span className="text-gray-500 font-medium text-sm">Plates Number</span>
+                            <span className="font-bold text-[#1a4b7c] bg-blue-50 px-2 py-0.5 rounded text-sm">{(selectedIncident.platesNumber || []).join(', ') || 'N/A'}</span>
                           </div>
                           <div className="flex justify-between border-b border-gray-200 pb-3">
-                            <span className="text-gray-500 font-medium">Location Source</span>
-                            <span className="font-bold text-gray-900 uppercase">{selectedIncident.locationSource || 'N/A'}</span>
+                            <span className="text-gray-500 font-medium text-sm">Source</span>
+                            <span className="font-bold text-gray-900 uppercase text-sm">{selectedIncident.locationSource || 'N/A'}</span>
                           </div>
                           <div className="pt-1">
-                            <span className="text-gray-500 font-medium block mb-2">Description</span>
+                            <span className="text-gray-500 font-medium block mb-2 text-sm">Description</span>
                             <p className="text-gray-800 bg-white p-3 rounded border border-gray-200 text-sm leading-relaxed">
                               {selectedIncident.description || "No description provided."}
                             </p>
@@ -318,17 +378,17 @@ export default function Dashboard() {
                       <div>
                         <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-3">Location</h3>
                         {selectedIncident.lat && selectedIncident.lng ? (
-                          <div className="bg-gray-50 rounded-xl p-5 border border-gray-100">
-                            <p className="text-gray-800 font-mono text-sm mb-4 bg-white p-2 border border-gray-200 rounded text-center">
+                          <div className="bg-gray-50 rounded-xl p-4 lg:p-5 border border-gray-100">
+                            <p className="text-gray-800 font-mono text-[11px] lg:text-sm mb-4 bg-white p-2 border border-gray-200 rounded text-center truncate">
                               {selectedIncident.lat}, {selectedIncident.lng}
                             </p>
-                            <a 
-                              href={`https://www.google.com/maps?q=${selectedIncident.lat},${selectedIncident.lng}`} 
-                              target="_blank" 
+                            <a
+                              href={`https://www.google.com/maps?q=${selectedIncident.lat},${selectedIncident.lng}`}
+                              target="_blank"
                               rel="noopener noreferrer"
                               className="block w-full text-center py-2.5 bg-[#1a4b7c] text-white font-bold text-sm rounded-xl hover:bg-[#133b63] shadow-md transition-colors"
                             >
-                              Open in Google Maps
+                              Open in Maps
                             </a>
                           </div>
                         ) : (
@@ -338,29 +398,26 @@ export default function Dashboard() {
 
                     </div>
 
-                    {/* RIGHT COL: Media */}
+                    {/* Media */}
                     <div>
-                      <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-3">Attached Evidence</h3>
+                      <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-3">Evidence</h3>
                       {selectedIncident.mediaUrls && selectedIncident.mediaUrls.length > 0 ? (
                         <div className="space-y-4">
                           {selectedIncident.mediaUrls.map((url, idx) => (
                             <div key={idx} className="rounded-xl overflow-hidden border border-gray-200 bg-gray-50 shadow-sm relative group cursor-pointer">
-                              <img 
-                                src={`http://sair-cpa-api.duckdns.org${url}`} 
-                                alt={`Evidence ${idx + 1}`} 
+                              <img
+                                src={`http://sair-cpa-api.duckdns.org${url}`}
+                                alt={`Evidence ${idx + 1}`}
                                 className="w-full h-auto object-contain max-h-64"
                                 onClick={() => window.open(`http://sair-cpa-api.duckdns.org${url}`, '_blank')}
                               />
-                              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
-                                <span className="text-white font-bold text-sm">Click to view full size</span>
-                              </div>
                             </div>
                           ))}
                         </div>
                       ) : (
                         <div className="bg-gray-50 rounded-xl p-8 border border-gray-100 flex flex-col items-center justify-center text-center">
                           <FileText className="w-12 h-12 text-gray-300 mb-3" />
-                          <p className="text-gray-500 font-medium">No media attached to this report.</p>
+                          <p className="text-gray-500 font-medium text-sm">No media attached.</p>
                         </div>
                       )}
                     </div>
@@ -368,8 +425,8 @@ export default function Dashboard() {
 
                 </div>
               ) : (
-                <div className="flex-1 flex items-center justify-center text-gray-400">
-                  No incident selected
+                <div className="flex-1 flex items-center justify-center text-gray-400 p-8 text-center">
+                  Select a report from the list to view details
                 </div>
               )}
 
