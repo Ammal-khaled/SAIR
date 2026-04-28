@@ -7,7 +7,7 @@ export default function Navbar({ searchQuery, setSearchQuery, onMenuClick }) {
     <header className="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-4 lg:px-6 shrink-0 z-30 relative shadow-sm">
 
       {/* Menu Toggle (Mobile) */}
-      <button 
+      <button
         onClick={onMenuClick}
         className="lg:hidden p-2 mr-2 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors"
       >
@@ -62,11 +62,6 @@ export default function Navbar({ searchQuery, setSearchQuery, onMenuClick }) {
             </div>
           </div>
 
-          <img
-            src="https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=100&q=80"
-            alt="User"
-            className="w-9 h-9 rounded-full object-cover border-2 border-white shadow-md group-hover:border-blue-200 transition-all"
-          />
         </div>
 
       </div>

@@ -43,17 +43,17 @@ export default function Profile({ onLogout }) {
 
   return (
     <div className="flex h-screen bg-[#f1f5f9] font-sans overflow-hidden text-slate-800" dir="ltr">
-      <Sidebar 
-        currentView={currentView} 
-        setCurrentView={setCurrentView} 
+      <Sidebar
+        currentView={currentView}
+        setCurrentView={setCurrentView}
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
       />
 
       <div className="flex-1 flex flex-col min-w-0">
-        <Navbar 
-          searchQuery={searchQuery} 
-          setSearchQuery={setSearchQuery} 
+        <Navbar
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
           onMenuClick={() => setIsSidebarOpen(true)}
         />
 
