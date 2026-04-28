@@ -5,7 +5,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import Logo from "../components/ui/Logo";
 import api from "../api/client";
 
-export default function Sidebar({ lang = "ar" }) {
+export default function Sidebar({ lang = "en" }) {
   const [width, setWidth] = useState(256);
   const isResizing = useRef(false);
 
@@ -37,10 +37,10 @@ export default function Sidebar({ lang = "ar" }) {
   }, []);
 
   const items = [
-    { id: "dashboard", path: "/dashboard", icon: LayoutDashboard, labelEn: "Dashboard", labelAr: "لوحة القيادة" },
-    { id: "map", path: "/map", icon: MapPin, labelEn: "Live Map", labelAr: "الخريطة الحية" },
-    { id: "reports", path: "/reports", icon: FileText, labelEn: "Reports", labelAr: "التقارير" },
-    { id: "profile", path: "/profile", icon: User, labelEn: "Profile", labelAr: "الملف الشخصي" },
+    { id: "dashboard", path: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
+    { id: "map", path: "/map", icon: MapPin, label: "Live Map" },
+    { id: "reports", path: "/reports", icon: FileText, label: "Reports" },
+    { id: "profile", path: "/profile", icon: User, label: "Profile" },
   ];
 
   useEffect(() => {
@@ -104,7 +104,7 @@ export default function Sidebar({ lang = "ar" }) {
                 }`}
             >
               <Icon className="w-5 h-5" />
-              {lang === "ar" ? i.labelAr : i.labelEn}
+              {i.label}
             </button>
           );
         })}
@@ -112,10 +112,7 @@ export default function Sidebar({ lang = "ar" }) {
 
       {/* Profile */}
       <div className="p-4 border-t border-gray-100 bg-gray-50/50 hover:bg-gray-50 transition-colors cursor-pointer group">
-        <div
-          className={`flex items-center gap-3 ${lang === "ar" ? "flex-row" : "flex-row-reverse"
-            }`}
-        >
+        <div className="flex items-center gap-3 flex-row-reverse">
           <div className="relative">
             <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center border-2 border-white shadow-sm text-[#1a4b7c]">
               <User size={20} />
@@ -123,18 +120,17 @@ export default function Sidebar({ lang = "ar" }) {
             <div className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full"></div>
           </div>
 
-          <div className={lang === "ar" ? "text-right flex-1 truncate" : "text-left flex-1 truncate"}>
+          <div className="text-left flex-1 truncate">
             <div className="text-sm font-bold text-gray-900 truncate">
-              {loading ? "..." : (user?.fullName || user?.email || (lang === "ar" ? "الملازم أحمد" : "Officer Ahmed"))}
+              {loading ? "..." : (user?.fullName || user?.email || "Officer Ahmed")}
             </div>
 
             <div className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mt-0.5 truncate">
-              {loading ? "..." : (user?.role || (lang === "ar" ? "مدير المناوبة" : "Duty Manager"))}
+              {loading ? "..." : (user?.role || "Duty Manager")}
             </div>
           </div>
         </div>
       </div>
-
     </aside>
   );
 }

@@ -8,11 +8,9 @@ export const StatCard = ({ title, value, sub, icon: Icon, delay = "0s", classNam
       <div>
         <p className="text-sm font-medium text-gray-500 mb-1">{title}</p>
         <h3 className="text-2xl font-bold text-[#002855] mb-1">{value}</h3>
-        {/* يعرض النص الفرعي فقط في حال تمريره للمكون */}
         {sub && <div className="text-xs text-blue-600 font-medium">{sub}</div>}
       </div>
       
-      {/* يعرض الأيقونة فقط في حال تمريرها للمكون */}
       {Icon && (
         <div className="p-2.5 rounded-full transition-transform duration-300 hover:scale-110 bg-blue-50 text-blue-600">
           <Icon className="w-5 h-5" />

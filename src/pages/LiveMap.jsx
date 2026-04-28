@@ -83,7 +83,7 @@ export default function LiveMap() {
         const res = await api.get("/reports");
 
         const mapped = res.data
-          .filter(r => r.lat && r.lng) // مهم جداً
+          .filter(r => r.lat && r.lng)
           .map((r) => ({
             id: r.id,
             type: r.accidentType,

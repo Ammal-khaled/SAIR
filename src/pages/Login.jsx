@@ -6,6 +6,8 @@ import {
   Globe, Info
 } from "lucide-react";
 
+import Logo from "../components/ui/Logo";
+
 const loginStyles = `
   @keyframes slideUp { 
     from { opacity: 0; transform: translateY(20px); } 
@@ -69,14 +71,6 @@ export default function Login({ onLogin, onNavigateToRegister }) {
     <div className="min-h-screen w-full bg-[#f8fafc] flex flex-col relative font-sans text-slate-800">
       <style>{loginStyles}</style>
 
-      {/* Language */}
-      <div className="absolute top-6 right-6 z-20">
-        <button className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-bold text-[#1a4b7c] shadow-sm">
-          <Globe className="w-4 h-4" />
-          العربية
-        </button>
-      </div>
-
       {/* Info */}
       <div className="absolute bottom-6 left-6 z-20 hidden md:block">
         <button className="w-10 h-10 bg-white border border-slate-200 rounded-full flex items-center justify-center text-[#1a4b7c]">
@@ -90,8 +84,8 @@ export default function Login({ onLogin, onNavigateToRegister }) {
 
           {/* HEADER */}
           <div className="flex flex-col items-center mb-8">
-            <div className="w-14 h-14 bg-[#1a4b7c] rounded-full flex items-center justify-center mb-5">
-              <Shield className="w-7 h-7 text-white" />
+            <div className="mb-2">
+              <Logo />
             </div>
             <h1 className="text-2xl font-serif font-bold text-[#002855]">
               Officer Login
