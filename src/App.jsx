@@ -9,6 +9,7 @@ import LiveMap from "./pages/LiveMap";
 import ApprovedReports from "./pages/ApprovedReports";
 
 import ProtectedRoute from "./routes/ProtectedRoute";
+import PublicRoute from "./routes/PublicRoute";
 
 export default function App() {
   return (
@@ -17,9 +18,9 @@ export default function App() {
         <Routes>
 
           {/* AUTH */}
-          <Route path="/" element={<Login />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
+          <Route path="/" element={<PublicRoute><Login /></PublicRoute>} />
+          <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+          <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
 
           {/* MAIN APP (PROTECTED) */}
           <Route
