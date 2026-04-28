@@ -1,9 +1,9 @@
 export default function Logo() {
   return (
-    <img 
-      src="/LOGO.png"
-      alt="logo" 
-      className="h-10 w-auto object-contain"
+    <img
+      src="src/assets/LOGO.png"
+      alt="logo"
+      className="h-24 w-auto object-contain"
     />
   );
 }
