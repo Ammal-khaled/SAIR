@@ -233,12 +233,12 @@ export default function Dashboard() {
 
 
           {/* Split View */}
-          <div ref={containerRef} className="flex-1 flex flex-col lg:flex-row overflow-visible lg:overflow-hidden relative min-h-0">
+          <div ref={containerRef} className="lg:flex-1 flex flex-col lg:flex-row lg:overflow-hidden relative lg:min-h-0">
 
             {/* LEFT - List */}
             <div
               style={{ width: window.innerWidth < 1024 ? '100%' : `${leftWidth}%` }}
-              className="flex flex-col h-fit lg:h-full lg:pr-2 shrink-0"
+              className="flex flex-col h-auto lg:h-full lg:pr-2 shrink-0"
             >
 
               <div className="flex gap-2 mb-4 shrink-0 overflow-x-auto pb-1 custom-scrollbar">
@@ -256,7 +256,7 @@ export default function Dashboard() {
                 ))}
               </div>
 
-              <div className="space-y-3 pb-4">
+              <div className="flex-1 overflow-y-auto space-y-3 pb-4 custom-scrollbar pr-1">
                 {filteredIncidents.length > 0 ? (
                   filteredIncidents.map((inc, i) => (
                     <ReportCard
